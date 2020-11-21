@@ -1,0 +1,4 @@
+"0","dataset <- merge(dataset,"
+"0","                 cobertura_ab,"
+"0","                 by = 'cod_ibge_municipio',"
+"0","                 all.x = T) # this means we should keep mostly all data from dataset "

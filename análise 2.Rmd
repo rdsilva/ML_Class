@@ -1,0 +1,391 @@
+---
+title: "Analysing Covid-19 and its impact over brazilian municipalities in terms of socio-economic ambiance indicators"
+author: "Rodrigo Silva (@lais.huol.ufrn.br)"
+date: "November 20th, 2020"
+output:
+  html_notebook:
+    highlight: tango
+    mathjax: null
+    number_sections: yes
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+---
+
+# Briefing
+
+This analysis is part of a challenge from a Machine Learning Class where the aim is to apply the concepts of Data Analysis and Machine Learning. This project has been took by 3 PhD candidates (Vera, Júlio and Rodrigo).
+
+In this notebook we intend to analyse socio-economic indicators from all brazilian cities and the number of cases  and deaths of Covid19 and find which variable could help us to understand the dynamics behind this disease. We collected almost 60 indicators corresponding to education, GDP per capita, basic sanitation, HDI, Gini index, life expectancy, mortality and others related.
+
+For the first step of this project, we'll look for the relation among all those indicators, how they are related between them and so select the most qualified to use some machine learning approaches to classify the data.  
+
+# Setup
+
+## Libraries
+
+```{r libraries, message=FALSE, warning=FALSE}
+library(dplyr)
+library(plotly)
+library(tidyr)
+library(Hmisc)
+library(taRifx)
+library(modeest) 
+library(caret)
+library(DMwR)
+```
+
+## Data
+
+```{r dataset}
+dataset <- read.csv2('dataset_02.csv', header = T)
+dataset_dict <- read.csv2('dicionário de dados.csv', header = T)
+cobertura_ab <- read.csv2('cobertura_ab.csv', header = T)
+```
+
+# Exploratory Analysis
+
+## Data Description
+
+The head of dataset.
+
+```{r}
+head(dataset)
+```
+
+The head of dataset dictionary.
+
+```{r}
+head(dataset_dict)
+```
+Renaming the variables with names more descriptive.
+
+```{r}
+names(dataset) <- dataset_dict$nome
+```
+
+Checking the type of each variable.
+
+```{r}
+str(dataset)
+```
+
+As we can see a big part of the data is missing the real type. Where it's supposed to be `numeric` we have `character` so we need to fix this.
+
+To fix all misreading of types we gonna cast the variable `data` to date type and what actually is `character` to `factor`. Therefore, we can run an automatic cast to all `numeric` variables that are marked as `charcater`.
+
+First step: converting what is not numeric.
+
+```{r}
+dataset$data <- as.Date(dataset$data, "%Y-%m-%d")
+
+dataset$nome_municipio <- as.factor(dataset$nome_municipio)
+dataset$nome_estado <- as.factor(dataset$nome_estado)
+dataset$nome_municipio_2 <- as.factor(dataset$nome_municipio_2)
+dataset$nome_regiao <- as.factor(dataset$nome_regiao)
+dataset$porte_municipio <-as.factor(dataset$porte_municipio)
+```
+
+Second step: converting what is supposed to be numeric.
+
+```{r warning=FALSE}
+dataset <- japply( dataset, which(sapply(dataset, class)=="character"), as.numeric )
+```
+
+Checking
+
+```{r}
+str(dataset)
+```
+
+Some variables is not important to our goal, duplicated or with aggregate values to the state, not to municipality, like `data`, `nome_municipio_2` and `populacao_total_pnud`, thus we need to remove them. 
+Seizing the opportunity we gonna reorder the columns.
+
+```{r}
+dataset <- dataset %>%
+  select(cod_ibge_municipio, longitude, latitude, nome_municipio, nome_estado, nome_regiao, porte_municipio, capital, regiao_metropolitana, populacao_total, everything(), 
+         -data, -nome_municipio_2, -populacao_total_pnud)
+```
+
+If we check the dataset all the columns after the `total_obitos_confirmados_covid` and before `tx_incidencia_sol_media_anual` are values aggregated to the state so doesn't bring to much significance to the municipalities analysis.
+On the other hand, the last 13 columns are data about light incidence which has no correlation with Covid19, so we gonna cut it off from dataset.
+
+```{r}
+dataset <- dataset[, 1:35]
+```
+
+Now I gonna combine the dataset with data about primary care coverage. I believe that could be a great indicator about how the public health care system was able to handle the pandemic situation.
+
+First of all, we should rename the columns to attend the pattern adopted in this notebook and we gonna discard the variable `População` as we already have this one in dataset.
+
+```{r}
+cobertura_ab <- cobertura_ab %>%
+  select(IBGE, Cobertura.AB) %>%
+  rename(cod_ibge_municipio = IBGE,
+         cobertura_ab = Cobertura.AB)
+```
+
+Now, merging process:
+
+```{r}
+dataset <- merge(dataset,
+                 cobertura_ab,
+                 by = 'cod_ibge_municipio',
+                 all.x = T) # this means we should keep mostly all data from dataset 
+```
+
+Now, We will create two new variables about Covid19 in the municipalities. The first one will be `incidence` which able us to compare the situation between cities. The second one will be `lethality` which tell us how hard the pandemic is being in that location and indirectly how the public health system is being responsive.
+
+```{r}
+dataset$incidencia <- (dataset$total_casos_confirmados_covid/dataset$populacao_total)*100000
+dataset$letalidade <- (dataset$total_obitos_confirmados_covid/dataset$total_casos_confirmados_covid)*100
+```
+
+
+Check the last version of the dataset we gonna use:
+
+```{r}
+str(dataset)
+```
+
+Now we have our dataset all organized, standardized and cleansed. Let's move on!
+
+## Data Frequency Distribution
+
+Here we gonna analyze the distribution of the values. This is a important step as this is where we can understand how the data is distributed by itself.
+So we gonna prepare some histograms to understand a little about the data. The seven first variables doesn't need a histogram since they actually are qualitative features.
+
+```{r}
+listOfPlots <- list()
+
+listOfPlots[["capital"]] <- plotly_build(plot_ly(x = dataset$capital, type = "histogram", name = "capital"))
+listOfPlots[["regiao_metropolitana"]] <- plotly_build(plot_ly(x = dataset$regiao_metropolitana, type = "histogram", name = "regiao_metropolitana"))
+listOfPlots[["populacao_total"]] <- plotly_build(plot_ly(x = dataset$populacao_total, type = "histogram", name = "populacao_total"))
+listOfPlots[["perc_matricula_epf"]] <- plotly_build(plot_ly(x = dataset$perc_matricula_epf, type = "histogram", name = "perc_matricula_epf"))
+listOfPlots[["perc_matricula_epm"]] <- plotly_build(plot_ly(x = dataset$perc_matricula_epm, type = "histogram", name = "perc_matricula_epm"))
+listOfPlots[["tx_distorcao_idade_serie_epf"]] <- plotly_build(plot_ly(x = dataset$tx_distorcao_idade_serie_epf, type = "histogram", name = "tx_distorcao_idade_serie_epf"))
+listOfPlots[["tx_distorcao_idade_serie_epm"]] <- plotly_build(plot_ly(x = dataset$tx_distorcao_idade_serie_epm, type = "histogram", name = "tx_distorcao_idade_serie_epm"))
+listOfPlots[["ideb_ai_ef"]] <- plotly_build(plot_ly(x = dataset$ideb_ai_ef, type = "histogram", name = "ideb_ai_ef"))
+listOfPlots[["ideb_ai_em"]] <- plotly_build(plot_ly(x = dataset$ideb_ai_em, type = "histogram", name = "ideb_ai_em"))
+listOfPlots[["perc_docente_epf"]] <- plotly_build(plot_ly(x = dataset$perc_docente_epf, type = "histogram", name = "perc_docente_epf"))
+listOfPlots[["perc_docente_epm"]] <- plotly_build(plot_ly(x = dataset$perc_docente_epm, type = "histogram", name = "perc_docente_epm"))
+listOfPlots[["tx_mortalidade_infantil"]] <- plotly_build(plot_ly(x = dataset$tx_mortalidade_infantil, type = "histogram", name = "tx_mortalidade_infantil"))
+listOfPlots[["tx_mortalidade_bruta"]] <- plotly_build(plot_ly(x = dataset$tx_mortalidade_bruta, type = "histogram", name = "tx_mortalidade_bruta"))
+listOfPlots[["perc_pop_cobertura_plano_saude"]] <- plotly_build(plot_ly(x = dataset$perc_pop_cobertura_plano_saude, type = "histogram", name = "perc_pop_cobertura_plano_saude"))
+listOfPlots[["perc_internacao_falha_aps"]] <- plotly_build(plot_ly(x = dataset$perc_internacao_falha_aps, type = "histogram", name = "perc_internacao_falha_aps"))
+listOfPlots[["perc_internacao_falha_saneamento"]] <- plotly_build(plot_ly(x = dataset$perc_internacao_falha_saneamento, type = "histogram", name = "perc_internacao_falha_saneamento"))
+listOfPlots[["vl_per_capita_bolsa_familia"]] <- plotly_build(plot_ly(x = dataset$vl_per_capita_bolsa_familia, type = "histogram", name = "vl_per_capita_bolsa_familia"))
+listOfPlots[["vl_per_capita_beneficio_prestacao_continuada"]] <- plotly_build(plot_ly(x = dataset$vl_per_capita_beneficio_prestacao_continuada, type = "histogram", name = "vl_per_capita_beneficio_prestacao_continuada"))
+listOfPlots[["perc_pop_cadunico_sem_abastecimento_agua"]] <- plotly_build(plot_ly(x = dataset$perc_pop_cadunico_sem_abastecimento_agua, type = "histogram", name = "perc_pop_cadunico_sem_abastecimento_agua"))
+listOfPlots[["perc_pop_cadunico_sem_esgotamento_sanitario"]] <- plotly_build(plot_ly(x = dataset$perc_pop_cadunico_sem_esgotamento_sanitario, type = "histogram", name = "perc_pop_cadunico_sem_esgotamento_sanitario"))
+listOfPlots[["perc_pop_cadunico_sem_coleta_lixo"]] <- plotly_build(plot_ly(x = dataset$perc_pop_cadunico_sem_coleta_lixo, type = "histogram", name = "perc_pop_cadunico_sem_coleta_lixo"))
+listOfPlots[["perc_pop_cadunico_sem_saneamento"]] <- plotly_build(plot_ly(x = dataset$perc_pop_cadunico_sem_saneamento, type = "histogram", name = "perc_pop_cadunico_sem_saneamento"))
+listOfPlots[["perc_pop_pobre_cadunico"]] <- plotly_build(plot_ly(x = dataset$perc_pop_pobre_cadunico, type = "histogram", name = "perc_pop_pobre_cadunico"))
+listOfPlots[["perc_pop_cadunico_bolsa_familia"]] <- plotly_build(plot_ly(x = dataset$perc_pop_cadunico_bolsa_familia, type = "histogram", name = "perc_pop_cadunico_bolsa_familia"))
+listOfPlots[["perc_pop_urbana_com_abastecimento_agua"]] <- plotly_build(plot_ly(x = dataset$perc_pop_urbana_com_abastecimento_agua, type = "histogram", name = "perc_pop_urbana_com_abastecimento_agua"))
+listOfPlots[["perc_participacao_queimadas_brasil"]] <- plotly_build(plot_ly(x = dataset$perc_participacao_queimadas_brasil, type = "histogram", name = "perc_participacao_queimadas_brasil"))
+listOfPlots[["total_casos_confirmados_covid"]] <- plotly_build(plot_ly(x = dataset$total_casos_confirmados_covid, type = "histogram", name = "total_casos_confirmados_covid"))
+listOfPlots[["total_obitos_confirmados_covid"]] <- plotly_build(plot_ly(x = dataset$total_obitos_confirmados_covid, type = "histogram", name = "total_obitos_confirmados_covid"))
+listOfPlots[["cobertura_ab"]] <- plotly_build(plot_ly(x = dataset$cobertura_ab, type = "histogram", name = "cobertura_ab"))
+listOfPlots[["incidencia"]] <- plotly_build(plot_ly(x = dataset$incidencia, type = "histogram", name = "incidencia"))
+listOfPlots[["letalidade"]] <- plotly_build(plot_ly(x = dataset$letalidade, type = "histogram", name = "letalidade"))
+
+```
+
+Ploting...
+
+```{r}
+
+plotly::subplot(listOfPlots, nrows = 11)
+
+```
+
+As we can see in the plots above the first two variables could create problems in the models we intend to use. The third feature is in fact the population which could also create some bias. Said that, we gonna cut it off from dataset we will analyze.
+
+## Data Position and Dispersion Measures
+
+Here we should check the measurement about the position of the data such as the `min` and `max` values of each feature, the `mean`, `median` and `mode` as well.
+
+All these stats could help us to implement a better model, more adjusted to the data.
+
+```{r}
+getStats <- function(ds) {
+  
+  colNames <- names(ds)
+  
+  res <- data.frame()
+  
+  for(col in colNames){
+    tmp <- data.frame(
+      variable = col,
+      min_value = min(ds[,col]),
+      max_value = max(ds[,col]),
+      range = max(ds[,col]) - min(ds[,col]),
+      mean = mean(ds[,col]),
+      median = median(ds[,col]),
+      mode = mfv(ds[,col]),
+      variance = var(ds[,col]),
+      sd = sd(ds[,col]),
+      mad = mad(ds[,col]),
+      iqr = IQR(ds[,col]),
+      first_quant = quantile(ds[,col], probs = c(.25)),
+      third_quant = quantile(ds[,col], probs = c(.75))
+    )
+    
+    res <- rbind(res, tmp)
+  }
+  
+  return(res)
+  
+}
+```
+
+
+```{r}
+dataset_stats <- getStats(dataset[,11:ncol(dataset)])
+
+dataset_stats
+```
+
+As we can notice looking to the results, some features presents a multi mode behavior.
+That's is interesting because it could help of classification or grouping.
+
+Now, to understand better how the data interact among itself we gonna plot a correlogram.
+
+```{r}
+dataset_cor <- cor(dataset[,11:ncol(dataset)])
+```
+
+```{r}
+colNames <- names(dataset[,11:ncol(dataset)])
+plot_ly(
+  x = colNames,
+  y = colNames,
+  z = dataset_cor, 
+  type = "heatmap")
+```
+
+As we can see in the plot above, some features has a strong negative correlation and few of then has strong positive correlation. The first impressions is all the socio-economics indicators has nothing to do with the cases of Covid19.
+Let's check it out!
+
+# Target
+
+As we can analyze the relation between socio-economics indicators and Covid19 to classify this relationship and we actually don't have a target feature we'll create this based on `lethality` and `incidence` as this variables show us how complicate the pandemic situation is taking in a specific location.
+
+We setted up the following easy fuzzy rules.
+
+For individual values of `incidence` and `lethality`:
+
+- If the value is on the first quartile then **leve**
+- If the value is on the second quartile then **moderado**
+- If the value is on the third quartile then **grave**
+- If the value is on the fourth quartile then **severo**
+
+The labels have a degree of importance, going from an easy situation until a very complicated condition.
+Then, looking for this definition, combining the individual labels into a single one will follow:
+
+- If the distance between individual labels is 0 or 1 then choose the lower one
+- If the distance between individual labels is 2 then increase the lower one by 1 level
+- If the distance between individual labels is 3 then increase the lower one by 2 level
+
+So...
+
+```{r}
+dataset <- dataset %>%
+  mutate(label_incidencia = ifelse(incidencia <= quantile(incidencia, probs = c(.25)), "Leve",
+                                   ifelse(incidencia > quantile(incidencia, probs = c(.25)) & incidencia <= quantile(incidencia, probs = c(.5)), "Moderado",
+                                          ifelse(incidencia > quantile(incidencia, probs = c(.5)) & incidencia <= quantile(incidencia, probs = c(.75)), "Grave", "Severo"))),
+         label_letalidade = ifelse(letalidade <= quantile(letalidade, probs = c(.25)), "Leve",
+                                   ifelse(letalidade > quantile(letalidade, probs = c(.25)) & letalidade <= quantile(letalidade, probs = c(.5)), "Moderado",
+                                          ifelse(letalidade > quantile(letalidade, probs = c(.5)) & letalidade <= quantile(letalidade, probs = c(.75)), "Grave", "Severo"))))
+```
+
+Combining...
+
+```{r}
+dataset <- dataset %>%
+  mutate(label = ifelse(label_incidencia == label_letalidade, label_incidencia,
+                        ifelse((label_incidencia == "Leve" & label_letalidade == "Moderado") | (label_incidencia == "Moderado" & label_letalidade == "Leve"), "Moderado",
+                               ifelse((label_incidencia == "Leve" & label_letalidade == "Grave") | (label_incidencia == "Grave" & label_letalidade == "Leve"), "Moderado",
+                                      ifelse((label_incidencia == "Leve" & label_letalidade == "Severo") | (label_incidencia == "Severo" & label_letalidade == "Leve"), "Grave",
+                                             ifelse((label_incidencia == "Moderado" & label_letalidade == "Grave") | (label_incidencia == "Grave" & label_letalidade == "Moderado"), "Moderado",
+                                                    ifelse((label_incidencia == "Moderado" & label_letalidade == "Severo") | (label_incidencia == "Severo" & label_letalidade == "Moderado"), "Grave","Grave")))))))
+```
+
+Getting some stats from the labels
+
+```{r}
+describe(dataset$label)
+```
+
+As we can see the label **Grave** answer by 53% of all dataset, followed by **Severo** with 36%, **Leve** with 8% and **Severo** with 2%.
+
+So before we start to train some model we need to equalize the numbers to create a fair situation to the model.
+
+# Train
+
+For the first test we won't change any feature. 
+We gonna try to train some algorithms and see what we get back as answer.
+Depending on the results we'll change or remove some features.
+
+But before to start we need to create a train dataset equalized, with the same number of occurrences for the target feature.
+As we already saw before, we have an unbalanced dataset.
+
+We just need to keep only the features already tested and the target as the other columns does not help us in any way.
+
+If that said, we first will select only the features we'll use and after that we'll use some techniques to balance the number of labels.
+
+```{r}
+set.seed(100)
+```
+
+Selecting the data to train:
+
+```{r}
+dataset_train <- dataset %>%
+  select(11:ncol(dataset), -total_casos_confirmados_covid, -total_obitos_confirmados_covid, -label_incidencia, -label_letalidade) %>%
+  droplevels()
+```
+
+Spliting the data using the rule 60/20/20
+
+```{r}
+trainRowNumbers <- createDataPartition(dataset_train$label, p=0.6, list=FALSE)
+
+trainData <- dataset_train[trainRowNumbers,]
+
+dataset_test <- dataset_train[-trainRowNumbers,]
+
+testRowNumbers <- createDataPartition(dataset_test$label, p=0.5, list=FALSE)
+
+devData <- dataset_test[testRowNumbers,]
+testData <- dataset_test[-testRowNumbers,]
+```
+
+Is in the `trainData` where we should apply the balance technique.
+
+```{r}
+describe(trainData$label)
+```
+
+Let's apply the SMOTE technique to oversampling the minors levels.
+
+```{r}
+trainData$label <- as.factor(trainData$label)
+trainData_smoted <- SMOTE(label ~ ., trainData, perc.over = 1000, perc.under = 300)
+describe(trainData_smoted$label)
+
+trainData_smoted <- SMOTE(label ~ ., trainData_smoted, perc.over = 1000, perc.under = 300)
+describe(trainData_smoted$label)
+```
+
+As some testes showed the SMOTE approach was not able to handle all variables at the same way. Thus, we decide to apply twice, one time over the `trainData` and the second over the SMOTEd data. 
+Thereby, we could get a more balanced dataset to use to train the models.
+
+Applying 
+
+## Decision Tree Model
+## Random Forest
+## KNN
+
+# Adjustment

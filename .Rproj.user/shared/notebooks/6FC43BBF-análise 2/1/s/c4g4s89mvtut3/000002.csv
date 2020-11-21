@@ -1,0 +1,13 @@
+"0","dataset <- dataset %>%
+  mutate(label = ifelse(label_incidencia == label_letalidade, label_incidencia,
+                        ifelse((label_incidencia == ""Leve"" & label_letalidade == ""Moderado"") | (label_incidencia == ""Moderado"" & label_letalidade == ""Leve""), ""Moderado"",
+                               ifelse((label_incidencia == ""Leve"" & label_letalidade == ""Grave"") | (label_incidencia == ""Grave"" & label_letalidade == ""Leve""), ""Moderado"",
+                                      ifelse((label_incidencia == ""Leve"" & label_letalidade == ""Severo"") | (label_incidencia == ""Severo"" & label_letalidade == ""Leve""), ""Grave"",
+                                             ifelse((label_incidencia == ""Moderado"" & label_letalidade == ""Grave"") | (label_incidencia == ""Grave"" & label_letalidade == ""Moderado""), ""Moderado"",
+                                                    ifelse((label_incidencia == ""Moderado"" & label_letalidade == ""Severo"") | (label_incidencia == ""Severo"" & label_letalidade == ""Moderado""), ""Grave"",""Grave"",)))))))
+"
+"2","Erro: Problem with `mutate()` input `label`.
+[31mx[39m unused argument (alist())
+[34mℹ[39m Input `label` is `ifelse(...)`.
+[90mRun `rlang::last_error()` to see where the error occurred.[39m
+"

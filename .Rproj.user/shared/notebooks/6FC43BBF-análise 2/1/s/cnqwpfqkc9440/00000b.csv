@@ -1,0 +1,6 @@
+"0","colNames <- names(dataset[,11:ncol(dataset)])"
+"0","plot_ly("
+"0","  x = colNames,"
+"0","  y = colNames,"
+"0","  z = dataset_cor, "
+"0","  type = ""heatmap"")"

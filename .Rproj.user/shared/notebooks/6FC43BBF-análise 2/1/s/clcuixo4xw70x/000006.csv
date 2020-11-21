@@ -1,0 +1,7 @@
+"0","dataset <- dataset %>%"
+"0","  mutate(label_incidencia = ifelse(incidencia <= quantile(incidencia, probs = c(.25)), ""Leve"","
+"0","                                   ifelse(incidencia > quantile(incidencia, probs = c(.25)) & incidencia <= quantile(incidencia, probs = c(.5)), ""Moderado"","
+"0","                                          ifelse(incidencia > quantile(incidencia, probs = c(.5)) & incidencia <= quantile(incidencia, probs = c(.75)), ""Grave"", ""Severo""))),"
+"0","         label_letalidade = ifelse(letalidade <= quantile(letalidade, probs = c(.25)), ""Leve"","
+"0","                                   ifelse(letalidade > quantile(letalidade, probs = c(.25)) & letalidade <= quantile(letalidade, probs = c(.5)), ""Moderado"","
+"0","                                          ifelse(letalidade > quantile(letalidade, probs = c(.5)) & letalidade <= quantile(letalidade, probs = c(.75)), ""Grave"", ""Severo""))))"

@@ -1,0 +1,82 @@
+---
+title: "EDA"
+output: html_notebook
+---
+
+```{r message=FALSE, warning=FALSE}
+library(dplyr)
+library(corrgram)
+library(GGally)
+```
+
+```{r}
+dados <- read.csv2('dataset_02.csv', header = T)
+```
+
+```{r}
+summary(dados)
+```
+
+# Convertendo os dados Numericos para Numerico
+
+```{r}
+sapply(dados, class)
+```
+
+Algumas colunas de fato são do tipo Character, outras são do tipo Date, assim sendo, algumas variaveis serão convertidas para um valor mais apropriado de tal forma que apenas as variáveis que precisam ser convertidades para Numeric permaneçam como Character.
+
+```{r}
+dados$data <- as.Date(dados$data, "%Y-%m-%d")
+
+dados$NOME <- as.factor(dados$NOME)
+dados$estado <- as.factor(dados$estado)
+dados$municipio <- as.factor(dados$municipio)
+dados$Região <- as.factor(dados$Região)
+dados$Porte <-as.factor(dados$Porte)
+```
+
+
+```{r}
+dados[, sapply(dados, class) == 'character']
+```
+```{r}
+dados_numerico <- dados %>%
+  select_if(is.character) %>%
+  mutate_all(as.numeric)
+```
+
+Removendo a Latitude e Longitude
+
+```{r}
+dados_numerico <- dados_numerico[,1:45]
+```
+
+Recuperando apenas os dados de Covid 
+
+```{r}
+covid <- dados[, 62:74]
+```
+
+Combinando os resultados
+
+```{r}
+dados_numerico <- cbind(dados_numerico, covid)
+```
+
+
+# Correlações
+
+```{r}
+corrgram(dados_numerico, order=NULL, lower.panel=panel.shade,
+  upper.panel=NULL, text.panel=panel.txt,
+  main="Variáveis sobre o Brasil e Covid")
+```
+
+
+
+# Teste de Pares
+
+```{r message=FALSE}
+ggpairs(dados_numerico)
+```
+

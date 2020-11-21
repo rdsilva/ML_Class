@@ -1,0 +1,6 @@
+"0","# dataset <- as.data.frame(lapply(dataset, function(x) ifelse(is.character(x), as.numeric(x),)))
+tmp <- as.data.frame(lapply(dataset, function(x) if(is.character(x)) as.numeric(x)))
+"
+"2","Error in (function (..., row.names = NULL, check.rows = FALSE, check.names = TRUE,  : 
+  arguments imply differing number of rows: 4643, 0
+"

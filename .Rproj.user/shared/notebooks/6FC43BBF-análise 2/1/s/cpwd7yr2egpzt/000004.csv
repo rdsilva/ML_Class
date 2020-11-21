@@ -1,0 +1,3 @@
+"0","dataset <- dataset %>%"
+"0","  select(cod_ibge_municipio, longitude, latitude, nome_municipio, nome_estado, nome_regiao, porte_municipio, capital, regiao_metropolitana, populacao_total, everything(), "
+"0","         -data, -nome_municipio_2, -populacao_total_pnud)"

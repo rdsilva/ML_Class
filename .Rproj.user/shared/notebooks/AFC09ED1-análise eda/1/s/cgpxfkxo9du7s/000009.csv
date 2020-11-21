@@ -1,0 +1,3 @@
+"0","dados_numerico <- dados %>%"
+"0","  select_if(is.character) %>%"
+"0","  mutate_all(as.numeric)"

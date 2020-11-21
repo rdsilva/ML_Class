@@ -1,0 +1,5 @@
+"0","dados$data <- format(dados$data, ""%Y-%m-%d"")
+"
+"2","Error in format.default(dados$data, ""%Y-%m-%d"") : 
+  argumento 'trim' inválido
+"

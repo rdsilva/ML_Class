@@ -1,0 +1,75 @@
+﻿Variável;Descrição;nome
+PMATPUB_EF;Percentual de Matriculas no Ensino Público Fundamental;perc_matricula_epf
+PMATPUB_EM;Percentual de Matriculas no Ensino Público Médio;perc_matricula_epm
+DIST_EF_PUB;Taxa de Distorção Idade-Série no Ensino Público Fundamental;tx_distorcao_idade_serie_epf
+DIST_EM_PUB;Taxa de Distorção Idade-Série no Ensino Público Médio;tx_distorcao_idade_serie_epm
+IDEB_AI;IDEB Anos Iniciais no Ensino Fundamental;ideb_ai_ef
+IDEB_AF;IDEB Anos Finais no Ensino Fundamental;ideb_ai_em
+DOCSUP_EF_PUB;Percentual de Docentes no Ensino Público Fundamental;perc_docente_epf
+DOCSUP_EM_PUB;Percentual de Docentes no Ensino Público Médio;perc_docente_epm
+TXMOINF;Taxa de Mortalidade Infantil;tx_mortalidade_infantil
+TXBRUTAMORT;Taxa Bruta de Mortalidade;tx_mortalidade_bruta
+TXCOBPLP;Percentual da População coberta por Planos de Saúde;perc_pop_cobertura_plano_saude
+PINTERSAP;Percentual de Internações por Falhas na Atenção Primária;perc_internacao_falha_aps
+PINTERDRSAI;Percentual de Internações por Falhas no Saneamento Ambiental;perc_internacao_falha_saneamento
+REN_TRPCBF_D;Valor Per Capita do Bolsa Família;vl_per_capita_bolsa_familia
+REN_TRPCBPC_D;Valor Per Capita do Benefício de Prestação Continuada;vl_per_capita_beneficio_prestacao_continuada
+PDEFAGUA;Percentual da População no Cadastro Único sem Abastecimento de Água Adequada;perc_pop_cadunico_sem_abastecimento_agua
+PDEFESGOTO;Percentual da População no Cadastro Único sem Esgotamento Sanitário Adequado;perc_pop_cadunico_sem_esgotamento_sanitario
+PDEFLIXO;Percentual da População no Cadastro Único sem Coleta de Lixo Adequada;perc_pop_cadunico_sem_coleta_lixo
+PDEFSAN;Percentual da População sem Saneamento Adequado;perc_pop_cadunico_sem_saneamento
+PPOB_POS;Percentual da População Pobre no Cadastro Único;perc_pop_pobre_cadunico
+PBF;Percentual da População no Cadastro Único que recebe Bolsa Família;perc_pop_cadunico_bolsa_familia
+SNIS_PAGUA;Percentual da População Urbana ligados à rede de Abastecimento de Água;perc_pop_urbana_com_abastecimento_agua
+PFOCOS;Percentual de Participação no Total de Queimadas no Brasil;perc_participacao_queimadas_brasil
+POP_TOT;População total do Município;populacao_total
+NOME;Nome do Município Brasileiro;nome_municipio
+IBGE;Código IBGE do Município;cod_ibge_municipio
+estado;Nome do Estado Brasileiro;nome_estado
+municipio;Nome do Município Brasileiro;nome_municipio_2
+data;Data;data
+casosAcumulado;Total de Casos Covid19 Acumulados;total_casos_confirmados_covid
+obitosAcumulado;Total de Óbitos Covid19 Acumulados;total_obitos_confirmados_covid
+interior.metropolitana;Município de Região Metropolitana ou Interior;regiao_metropolitana
+Região;Região Administrativa Brasileira;nome_regiao
+Porte;Porte do Município;porte_municipio
+Capital;Definição se o Município é ou não Capital do seu Estado;capital
+ESPVIDA;Esperança de Vida ao Nascer;esperanca_vida
+MORT1;Taxa de Mortalidade Infantil - Mortalidade de Crianças até 1 ano para cada 1000 Nascidas Vivas;tx_mortalidade_infantil_pnud
+T_ENV;Taxa de Envelhecimento - Porcentagem da População acima de 65 anos;tx_envelhecimento
+RAZDEP;Razão de Dependência - Razão entre menores de 15 anos e maiores de 65 anos em relação ao resto da população;razao_dependencia
+ANOSEST;Média em Anos de Estudo;media_anos _estudo
+T_ANALF15M;Taxa de Analfabetismo  - Razão entre a população de 15 anos ou mais analfabeta em relação ao resto da população na mesma faixa etária;tx_analfabetismo
+T_ATRASO_2_BASICO;Proporção da População no Ensino Básico com 2 anos ou mais de atraso;tx_atraso_ensino_basico
+T_ATRASO_2_FUND;Proporção da População no Ensino Fundamental com 2 anos ou mais de atraso;tx_atraso_ensino_fundamental
+T_FUND15A17;Proporção da População entre 15 e 17 anos com Ensino Fundamental Completo;tx_pop_ensino_fundamental_completo
+R1040;Razão 10/40 entre os mais Ricos e mais Pobres do Município;razao_10_40_rico_probre
+RDPC;Renda Per Capita do Município;renda_per_capita
+RDPC1;Renda Per Capita do Município nos 20% mais Pobres;renda_per_capita_20_perc_pobre
+RDPC4;Renda Per Capita do Município nos 80% mais Pobres;renda_per_capita_80_perc_pobre
+RMPOB;Renda Per Capita dos Pobres;renda_per_capita_pobres
+RPOB;Renda Per Capita dos Vulneráveis à Pobreza;renda_per_capita_vulneravel_pobreza
+PMPOB;Proporção Populacional de Pobres;perc_pop_pobre
+PPOB;Proporção Populacional de Vulneráveis à Pobreza;perc_pop_vulneravel_pobreza
+GINI;Indicador de Desigualdade Social Gini;gini
+POP;População total em Domicílios Particulares Permanente;pop_domicilio_proprio
+POPTOT;População Total;populacao_total_pnud
+IDHM_E;IDHM Educação;idhm_educacao
+IDHM_L;IDHM Longevidade;idhm_longevidade
+IDHM_R;IDHM Renda;idhm_renda
+IDHM;IDH Municipal;idhm
+LON;Longitude do Município;longitude
+LAT;Latitude do Município;latitude
+ANNUAL;Taxa de Incidência luminosa - Média Anual;tx_incidencia_sol_media_anual
+JAN;Taxa de Incidência luminosa - Média Mensal;tx_incidencia_sol_media_janeiro
+FEB;Taxa de Incidência luminosa - Média Mensal;tx_incidencia_sol_media_fevereiro
+MAR;Taxa de Incidência luminosa - Média Mensal;tx_incidencia_sol_media_marco
+APR;Taxa de Incidência luminosa - Média Mensal;tx_incidencia_sol_media_abril
+MAY;Taxa de Incidência luminosa - Média Mensal;tx_incidencia_sol_media_maio
+JUN;Taxa de Incidência luminosa - Média Mensal;tx_incidencia_sol_media_junho
+JUL;Taxa de Incidência luminosa - Média Mensal;tx_incidencia_sol_media_julho
+AUG;Taxa de Incidência luminosa - Média Mensal;tx_incidencia_sol_media_agosto
+SEP;Taxa de Incidência luminosa - Média Mensal;tx_incidencia_sol_media_setembro
+OCT;Taxa de Incidência luminosa - Média Mensal;tx_incidencia_sol_media_outubro
+NOV;Taxa de Incidência luminosa - Média Mensal;tx_incidencia_sol_media_novembro
+DEC;Taxa de Incidência luminosa - Média Mensal;tx_incidencia_sol_media_dezembro

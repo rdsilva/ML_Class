@@ -1,0 +1,7 @@
+"0","dataset$data <- as.Date(dataset$data, ""%Y-%m-%d"")"
+"0",""
+"0","dataset$nome_municipio <- as.factor(dataset$nome_municipio)"
+"0","dataset$nome_estado <- as.factor(dataset$nome_estado)"
+"0","dataset$nome_municipio_2 <- as.factor(dataset$nome_municipio_2)"
+"0","dataset$nome_regiao <- as.factor(dataset$nome_regiao)"
+"0","dataset$porte_municipio <-as.factor(dataset$porte_municipio)"

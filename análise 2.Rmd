@@ -351,6 +351,13 @@ dataset_train <- dataset %>%
   droplevels()
 ```
 
+Saving the dataset selected to future checking process.
+
+```{r}
+write.csv2(dataset_train, 'dataset_train.csv', row.names = F)
+```
+
+
 Spliting the data using the rule 60/20/20
 
 ```{r}
@@ -513,6 +520,6 @@ knn_test <- predict(knn_fit, newdata = testData)
 confusionMatrix(knn_test, testData$label)  
 ```
 
-
+Quite different from what was expected KNN results where the worst. Even with the model trained giving the 86.99% of Accuracy and 82.53% of Kappa value the model does not fitted very well with the test sets of data. This probably occurred due to the dataset, as we could saw with histograms maybe the data needs some pre processing to be standardized  
 
 # Conclusion

@@ -3,7 +3,7 @@
     "path": "~/Documents/PPgEEC/ML/Trabalho 1/análise 2.Rmd",
     "project_path": "análise 2.Rmd",
     "type": "r_markdown",
-    "hash": "0",
+    "hash": "3501730884",
     "contents": "",
     "dirty": false,
     "created": 1605900640128.0,
@@ -12,17 +12,17 @@
     "properties": {
         "tempName": "Untitled1",
         "chunk_output_type": "inline",
-        "cursorPosition": "517,12",
-        "scrollLine": "507",
+        "cursorPosition": "357,0",
+        "scrollLine": "337",
         "docOutlineVisible": "1",
         "ignored_words": "dataset,multimode\n"
     },
     "folds": "",
-    "lastKnownWriteTime": 1606060381,
+    "lastKnownWriteTime": 1606072620,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1606060381037,
+    "last_content_update": 1606072620541,
     "read_only": false,
     "read_only_alternatives": []
 }

@@ -22,6 +22,8 @@ For the first step of this project, we'll look for the relation among all those 
 
 # Setup
 
+The R programming machine learning **caret** package (Classification And REgression Training) holds tons of functions that helps to build predictive models. It holds tools for data splitting, pre-processing, feature selection, tuning and supervised – unsupervised learning algorithms, etc. It is similar to **scikit-learn** library in python.
+
 ## Libraries
 
 ```{r libraries, message=FALSE, warning=FALSE}
@@ -32,7 +34,9 @@ library(Hmisc)
 library(taRifx)
 library(modeest) 
 library(caret)
+library(e1071)
 library(DMwR)
+library(rpart.plot)
 ```
 
 ## Data
@@ -350,6 +354,7 @@ dataset_train <- dataset %>%
 Spliting the data using the rule 60/20/20
 
 ```{r}
+dataset_train$label <- as.factor(dataset_train$label)
 trainRowNumbers <- createDataPartition(dataset_train$label, p=0.6, list=FALSE)
 
 trainData <- dataset_train[trainRowNumbers,]
@@ -371,7 +376,6 @@ describe(trainData$label)
 Let's apply the SMOTE technique to oversampling the minors levels.
 
 ```{r}
-trainData$label <- as.factor(trainData$label)
 trainData_smoted <- SMOTE(label ~ ., trainData, perc.over = 1000, perc.under = 300)
 describe(trainData_smoted$label)
 
@@ -385,7 +389,130 @@ Thereby, we could get a more balanced dataset to use to train the models.
 Applying 
 
 ## Decision Tree Model
+
+Here we define a Cross-Validation using 10 folds of data and 3 repetition.
+
+```{r}
+trainCtrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+```
+
+```{r}
+set.seed(100)
+
+dtree_fit <- train(label ~., data = trainData_smoted, method = "rpart",
+                   parms = list(split = "information"),
+                   trControl=trainCtrl,
+                   tuneLength = 10)
+```
+
+Checking results
+
+```{r}
+dtree_fit
+```
+
+Let's check how the tree was built.
+
+```{r}
+prp(dtree_fit$finalModel, box.palette = "Reds", tweak = 1.2)
+```
+
+Testing the prediction with `devData`...
+
+```{r}
+dtree_test <- predict(dtree_fit, newdata = devData)
+confusionMatrix(dtree_test, devData$label )  
+```
+
+We found such good results, but now we gonna test using the `testData`.
+
+```{r}
+dtree_test <- predict(dtree_fit, newdata = testData)
+confusionMatrix(dtree_test, testData$label ) 
+```
+
+Well, not only with the `devData` but also with `testData` we could found. In both the outcome bring us 99.89% of Accuracy and Kappa value equals to 99,81%.
+
+Accuracy means how many correct answers the model could give based on the dataset which was used to train.
+
+Kappa statistic is a very good measure that can handle very well both multi-class and imbalanced class problems. There is no standardized way to interpret its values. Landis and Koch (1977) provide a way to characterize values. According to their scheme a value < 0 is indicating no agreement , 0–0.20 as slight, 0.21–0.40 as fair, 0.41–0.60 as moderate, 0.61–0.80 as substantial, and 0.81–1 as almost perfect agreement.
+
 ## Random Forest
+
+Now we gonna try another machine learning technique. Random Forest uses almost the same approach as the Decision Tree but its actually creates a "forest", that is its creates a large amount of trees and use they together to refine the results.
+
+We gonna start with 500 trees and depending on the outcomes we return here to refine it.
+
+```{r}
+trainCtrl <- trainControl(method = "cv", classProbs = TRUE, summaryFunction = multiClassSummary, number = 3)
+
+set.seed(100)
+
+rf_fit <- train(label ~., data = trainData_smoted, method = "rf",
+                ntree = 500, tunelength = 10, metric = "logLoss",
+                trControl = trainCtrl,
+                importance = TRUE)
+```
+
+So, let's check it out
+
+```{r}
+rf_fit
+```
+
+Testing with the `devData`
+
+```{r}
+rf_test <- predict(rf_fit, newdata = devData)
+confusionMatrix(rf_test, devData$label)  
+```
+
+And now with `testData`
+
+```{r}
+rf_test <- predict(rf_fit, newdata = testData)
+confusionMatrix(rf_test, testData$label)  
+```
+
+Using the Random Forest technique we also could find some good results. For the first test we got 99.57% of Accuracy and Kappa value equals to 99.25%. At the second test we got 99.78% of Accuracy and 99.63% as Kappa.
+
 ## KNN
 
-# Adjustment
+For now, we'll try the KNN algorithm and check if we can get the same level of outcomes.
+
+```{r}
+trainCtrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+
+set.seed(100)
+
+knn_fit <- train(label ~., data = trainData_smoted, method = "knn",
+                trControl = trainCtrl,
+                preProcess = c("center", "scale"),
+                tuneLength = 10)
+```
+
+Here we also used the Cross-Validation approach to refine the results as we did with Decision Tree before.
+
+```{r}
+knn_fit
+```
+
+As we can see above, the best K value was 5 which can give us 86.99% of Accuracy and 82.53% as Kappa value. The K value means the number of clusters deliver the best results.
+
+Let's check with the `devData`
+
+```{r}
+knn_test <- predict(knn_fit, newdata = devData)
+confusionMatrix(knn_test, devData$label)  
+```
+
+And now with `testData`
+
+```{r}
+knn_test <- predict(knn_fit, newdata = testData)
+confusionMatrix(knn_test, testData$label)  
+```
+
+
+
+# Conclusion

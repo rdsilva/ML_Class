@@ -1,3 +1,4 @@
+"0","dataset_train$label <- as.factor(dataset_train$label)"
 "0","trainRowNumbers <- createDataPartition(dataset_train$label, p=0.6, list=FALSE)"
 "0",""
 "0","trainData <- dataset_train[trainRowNumbers,]"

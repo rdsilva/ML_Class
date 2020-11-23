@@ -210,7 +210,7 @@ As we can see in the plots above the first two variables could create problems i
 
 Here we should check the measurement about the position of the data such as the `min` and `max` values of each feature, the `mean`, `median` and `mode` as well.
 
-All these stats could help us to implement a better model, more adjusted to the data.
+All these stats could help us to implement a better model, adjusting the data to better outcomes from model. 
 
 ```{r}
 getStats <- function(ds) {
@@ -330,7 +330,7 @@ So before we start to train some model we need to equalize the numbers to create
 
 For the first test we won't change any feature. 
 We gonna try to train some algorithms and see what we get back as answer.
-Depending on the results we'll change or remove some features.
+Depending on the results we'll change or remove some features. There is no hard and fast rule to tell you when and how modify your data. You can always start by fitting your model to raw and after normalize and/or standardize data and compare the performance for best results.
 
 But before to start we need to create a train dataset equalized, with the same number of occurrences for the target feature.
 As we already saw before, we have an unbalanced dataset.
@@ -522,4 +522,120 @@ confusionMatrix(knn_test, testData$label)
 
 Quite different from what was expected KNN results where the worst. Even with the model trained giving the 86.99% of Accuracy and 82.53% of Kappa value the model does not fitted very well with the test sets of data. This probably occurred due to the dataset, as we could saw with histograms maybe the data needs some pre processing to be standardized  
 
+For classification algorithms like KNN, we measure the distances between pairs of samples and these distances are influenced by the measurement units also. 
+
+For our dataset we are applying KNN on a data having 26 features. We have feature with range of 5.3 units and features where the range is 20723 units. In this case, most of the clusters will be generated based on features with largest ranges. To avoid this miss classification, we should normalize the feature variables. Actually, any algorithm where distance play a vital role for prediction or classification, we should normalize the variable.
+
+### Feature Scaling
+
+Before we start the feature scaling process we should understand a little about this process and you could have some references [HERE](https://towardsdatascience.com/normalization-vs-standardization-cb8fe15082eb) and [HERE](https://www.analyticsvidhya.com/blog/2020/04/feature-scaling-machine-learning-normalization-standardization/). It's also crucial understand how your algorithm works first. In the case of cluster algorithms we must prioritize similarities between features based on distance measures.
+
+When we **Normalize** a dataset we actually distribute data between the range [0,1]. This option is good to use when you know that the distribution of your data does not follow a Gaussian distribution. This can be useful in algorithms that do not assume any distribution of the data like K-Nearest Neighbors and Neural Networks.
+
+But, when we **Standardize** the data, we distribute data centered around 0 with the range between [-1,1]. This option, on the other hand, can be helpful in cases where the data follows a Gaussian distribution. However, this does not have to be necessarily true. Also, unlike normalization, standardization does not have a bounding range. So, even if you have outliers in your data, they will not be affected by standardization.
+
+
+For our situation here we will use **normalization** approach.
+
+```{r}
+normalize <- function(x) {
+  return ((x - min(x)) / (max(x) - min(x)))
+}
+```
+
+
+```{r}
+dataset_train_scaled <- dataset_train
+
+dataset_train_scaled[,1:26] <- normalize(dataset_train_scaled[,1:26])
+```
+
+
+```{r}
+trainRowNumbers <- createDataPartition(dataset_train_scaled$label, p=0.6, list=FALSE)
+
+trainData_scaled <- dataset_train_scaled[trainRowNumbers,]
+
+dataset_test_scaled <- dataset_train_scaled[-trainRowNumbers,]
+
+testRowNumbers <- createDataPartition(dataset_test_scaled$label, p=0.5, list=FALSE)
+
+devData_scaled <- dataset_test_scaled[testRowNumbers,]
+testData_scaled <- dataset_test_scaled[-testRowNumbers,]
+```
+
+```{r}
+describe(trainData_scaled$label)
+```
+
+```{r}
+trainData_scaled_smoted <- SMOTE(label ~ ., trainData_scaled, perc.over = 1000, perc.under = 300)
+describe(trainData_scaled_smoted$label)
+
+trainData_scaled_smoted <- SMOTE(label ~ ., trainData_scaled_smoted, perc.over = 1000, perc.under = 300)
+describe(trainData_scaled_smoted$label)
+```
+
+
+```{r}
+trainCtrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+
+set.seed(100)
+
+knn_fit <- train(label ~., data = trainData_scaled_smoted, method = "knn",
+                trControl = trainCtrl,
+                preProcess = c("center", "scale"),
+                tuneLength = 10)
+```
+
+```{r}
+knn_fit
+```
+
+The model gave us almost the same result. The algorithm choose the same K value and the Accuracy and Kappa values was pretty nearly the same.
+
+Let's check if the feature scaling process was able to improve our results.
+
+```{r}
+knn_test <- predict(knn_fit, newdata = devData_scaled)
+confusionMatrix(knn_test, devData_scaled$label)  
+```
+
+Now with the `testData_scaled`
+
+```{r}
+knn_test <- predict(knn_fit, newdata = testData_scaled)
+confusionMatrix(knn_test, testData_scaled$label)  
+```
+
+
 # Conclusion
+
+A Decision Tree is a decision support tool that uses a tree-like model of decisions taking into account their possible consequences, chance of an event happen, costs and utility. On the other hand, a Random Forest is an ensemble learning method that builds a forest of decision trees during the training process and gives the final outcome based on the outputs of all its decision trees.
+
+A Decision Tree is invariant to feature scaling as well as Random Forests so. Is this both situation we hadn't any need for changes in dataset.
+
+Unlike this two first trials, the KNN approach results was not as expected. During the first round using KNN we applied the wad data as we did with Decision Tree and Random Forest. Reading more about the algorithm we realized the data should be scaled as clustering algorithm is particularly sensitive to range variations. As you can see above a normalization of all features was applied and and a new attempt was made but with the same results.
+
+Despite the good results using the first two algorithms, maybe the dataset is not "good enough" to KNN once we saw in correlogram the poor relationship among the most features. However, taking this as the only data we have to work, we must discard KNN as an option and decide between DT or RF.
+
+There is a possibility of overfitting in a decision tree. The use of multiple trees in the random forest reduces the risk of overfitting. A random forest gives more accurate results than a decision tree.
+
+With all this said and looking for the results we classify the results as:
+
+1. Random Forest
+2. Decision Tree
+3. KNN
+
+
+
+
+
+
+
+
+
+
+
+
+

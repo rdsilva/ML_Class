@@ -12,14 +12,14 @@
     "properties": {
         "expression": "dataset_stats",
         "caption": "dataset_stats",
-        "totalObservations": 68,
-        "displayedObservations": 68,
-        "variables": 13,
-        "cacheKey": "94AD13EC",
+        "totalObservations": "68",
+        "displayedObservations": "68",
+        "variables": "13",
+        "cacheKey": "990D6A7E",
         "object": "dataset_stats",
         "environment": "",
-        "contentUrl": "grid_resource/gridviewer.html?env=&obj=dataset_stats&cache_key=94AD13EC&max_cols=50",
-        "preview": 0
+        "contentUrl": "grid_resource/gridviewer.html?env=&obj=dataset_stats&cache_key=990D6A7E&max_cols=50",
+        "preview": "0"
     },
     "folds": "",
     "lastKnownWriteTime": 228,
